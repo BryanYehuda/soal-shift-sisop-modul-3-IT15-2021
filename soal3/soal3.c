@@ -5,21 +5,28 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <dirent.h>
+#include <stdlib.h>
 
 int jumlah=1;
 char *command;
 char *file = "-f";
 char *directory = "-d";
+pthread_t tid[10000];
+
 char* getExt(char *namaFile){
     char *token ;
     char *str = namaFile;
+    printf("namaFile = %s\n", str);
     token = strtok(str, ".");
-    // printf("%s\n", token);
-    token = strtok(NULL, "");
-    int jumlah;
-    if(token == NULL){
+    printf("ini token = %s\n", token);
+    if(strcmp(token,str)==0){
         token = "unknown";
+        return token;
     }
+    token = strtok(NULL, "");
+    printf("%s\n", token);
+    // printf("Token = %s\n", token);
+    int jumlah;
     return token;
 }
 
@@ -63,19 +70,31 @@ void moveFile(char *location, char *namaFile, char *ext){
 char *dicName;
 void *processFiles(void *location){
     char *token, *fileName;
-    char *fileLoc, fileLocCoba[2600];
+    char *fileLoc, fileLocCoba[2600], *location1;
+    struct dirent *de;  // Pointer for directory entry
+    
+    // opendir() returns a pointer of DIR type. 
     fileLoc = (char *) location;
-    if(strcmp(command, directory)==0){
-        snprintf(fileLocCoba, sizeof fileLocCoba, "%s/%s", dicName,fileLoc);
-    }else{
+    location1 = (char *) location;
+    DIR *dr = opendir(fileLoc);
+  
+    if (dr == NULL)  // opendir returns NULL if couldn't open directory
+    {
+
         snprintf(fileLocCoba, sizeof fileLocCoba, "%s", fileLoc);
+        printf("FileLoc = %s\n", fileLoc);
+        token = getExt(location1);
+        fileName = getFileName(location);
+        printf("token = %s filename = %s\n", token, fileName);
+        // printf("%s\n", fileName);
+        createDirectory(token);
+        moveFile(fileLocCoba, fileName, token);
     }
-    token = getExt(location);
-    fileName = getFileName(location);
-    printf("%s %s\n", token, fileName);
-    createDirectory(token);
-    moveFile(fileLocCoba, fileName, token);
 }
+int banyakFile=0;
+char *info[10000];
+char infos[10000][10000];
+int banyak=0;
 void listFilesRecursively(char *basePath)
 {
     char path[1000];
@@ -84,24 +103,66 @@ void listFilesRecursively(char *basePath)
 
     if (!dir)
         return;
-
     while ((dp = readdir(dir)) != NULL)
     {
         if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
         {
-            printf("%s\n", dp->d_name);
-            processFiles(dp->d_name);
+            printf("file %s\n", dp->d_name);
+            // proceschsFiles(dp->d_name);
             // Construct new path from our base path
             strcpy(path, basePath);
             strcat(path, "/");
             strcat(path, dp->d_name);
+            char check[10000];
+            snprintf(check, sizeof check, "%s", dp->d_name);
+            if(check[0]=='.'){
+                createDirectory("hidden");
+                char moves[10000];
+                snprintf(moves, sizeof moves, "hidden/%s", dp->d_name);
+                rename(path, moves);
+                printf("hidden\n");
+            }else{
+                printf("%s\n", path);
+                char loc[1000];
+                strcpy(loc, path);
+                printf("%d\n", banyak);
+                snprintf(infos[banyak], sizeof loc, "%s", loc);
+                printf("isi = %s", infos[banyak]);
+                banyak = banyak + 1;
+                banyakFile++;
+                // listFilesRecursively(path);
+            }
+            // strcpy(path, basePath);
+            // strcat(path, "/");
+            // strcat(path, dp->d_name);
+            // printf("path = %s\n", path);
+            // pthread_create(&(tid[banyakFile]), NULL, processFiles, (char*)path);
+            // printf("processPath = %s\n", path);
+            // printf("banyakFile = %d\n", banyakFile);
+            // char loc[1000];
+            // strcpy(loc, path);
+            // // info[banyak] = loc;
+            // // banyak++;
+            // // printf("info %d = %s\n", banyakFile, info[2][1]);
+            // //jagnan lupa join
+            // // processFiles(path);
+            // snprintf(infos[banyak], sizeof loc, "%s", loc);
+            // // info[banyak] = loc;
+            // // if(banyak >0 ){
+            // //     printf("info %d = %s\n", banyakFile, infos[banyak-1]);
+            // // }
+            // // printf("info %d = %s\n", banyakFile, infos[banyak]);
+            // banyak = banyak + 1;
+            // banyakFile++;
             listFilesRecursively(path);
+            // pthread_create(&(tid[banyakFile]), NULL, processFiles, (char*)path);
+            // processFiles(path);
         }
     }
-
+    // printf("info %d = %s\n", banyakFile, info[2]);
     closedir(dir);
 }
-pthread_t tid[100];
+
 int main( int argc, char *argv[] )  {
     char *perintah = argv[1];
     command = argv[1];
@@ -118,5 +179,20 @@ int main( int argc, char *argv[] )  {
         printf("ini sebuah directory\n");
         dicName = argv[2];
         listFilesRecursively(argv[2]);
+        // printf("%s\n", info[1]);
+        printf("banyak files = %d\n", banyakFile);
+        for(int i=0; i<banyakFile; i++){
+            pthread_create(&(tid[i]), NULL, processFiles, (char*)infos[i]);
+        }
+        for(int i=0;i < banyakFile ; i++){
+            pthread_join(tid[i],NULL);
+        }
+    }else if(strcmp(perintah, "*")==0){
+        printf("%s\n", argv[1]);
+        char *buf;
+        buf=(char *)malloc(100*sizeof(char));
+        getcwd(buf,100);
+        printf("\n %s \n",buf);
+        listFilesRecursively(buf);
     }
 }
