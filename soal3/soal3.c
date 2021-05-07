@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <dirent.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 int jumlah=1;
 char *command;
@@ -20,7 +21,7 @@ char* getExt(char *namaFile){
     char *ret;
     ret = strchr(str, '/');
     if(ret != NULL){
-        printf("%s\n", ret);
+        // printf("%s\n", ret);
         if(ret[1]=='.'){
             token = "hidden";
             return token;
@@ -35,6 +36,9 @@ char* getExt(char *namaFile){
     }
     // printf("%s\n", token);
     // printf("Token = %s\n", token);
+    for(int i = 0; token[i]; i++){
+       token[i] = tolower(token[i]);
+    }
     int jumlah;
     return token;
 }
@@ -100,6 +104,9 @@ void *processFiles(void *location){
         fileName = getFileName(location);
         // printf("token = %s filename = %s\n", token, fileName);
         // printf("%s\n", fileName);
+        // for(int i = 0; token[i]; i++){
+        //    token[i] = tolower(token[i]);
+        // }
         createDirectory(token);
         moveFile(fileLocCoba, fileName, token);
     }
@@ -205,7 +212,7 @@ int main( int argc, char *argv[] )  {
             pthread_join(tid[i],NULL);
         }
         if(berhasil=='1'){
-            printf("Direktori sukses disimpan!”\n");
+            printf("Direktori sukses disimpan!\n");
         }else{
             printf("Yah, gagal disimpan :(");
         }
