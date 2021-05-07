@@ -34,7 +34,6 @@ int main()
     close(pi[1]);
     close(pi[0]);
 
-    //  Third child
     if (fork() == 0)
     {
 
