@@ -86,10 +86,6 @@ void main()
       		pthread_join(thread[c * 6 + d],NULL);
 		}
 	}
-	// for (int c = 0; c < 4; c++){
-	// 	for (int d = 0; d < 6; d++){
-	// 	}
-	// }	
 	printf("Hasil perhitungan dengan matrix baru :\n");
 	for (int c = 0; c < 4; c++){
 		for (int d = 0; d < 6; d++){
