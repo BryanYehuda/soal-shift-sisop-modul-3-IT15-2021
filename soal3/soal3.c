@@ -19,7 +19,7 @@ char* getExt(char *namaFile){
     char *str = namaFile;
     // printf("namaFile = %s\n", str);
     char *ret;
-    ret = strchr(str, '/');
+    ret = strrchr(str, '/'); 
     if(ret != NULL){
         // printf("%s\n", ret);
         if(ret[1]=='.'){
@@ -27,9 +27,14 @@ char* getExt(char *namaFile){
             return token;
         }
     }
+    // if(str[0]=='.'){
+    //     token = "hidden";
+    //     return token;
+    // }
     token = strtok(str, ".");
-    // printf("ini token = %s\n", token);
+    // printf("ini token1 = %s\n", token);
     token = strtok(NULL, "");
+    // printf("ini token1 = %s\n", token);
     if(token == NULL){
         token = "unknown";
         return token;
@@ -97,7 +102,6 @@ void *processFiles(void *location){
   
     if (dr == NULL)  // opendir returns NULL if couldn't open directory
     {
-
         snprintf(fileLocCoba, sizeof fileLocCoba, "%s", fileLoc);
         // printf("FileLoc = %s\n", fileLoc);
         token = getExt(location1);
