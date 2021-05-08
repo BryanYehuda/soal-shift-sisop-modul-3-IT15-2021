@@ -34,6 +34,7 @@ int main(void)
     int (*matriksShare)[10];
     int shmid = shmget(key, sizeof *matriksShare[24], IPC_CREAT | 0666);
     matriksShare = shmat(shmid, NULL, 0);
+    pthread_t thread[MAX_THREAD];
     
     printf("Enter elements of first matrix\n");
     
@@ -47,7 +48,6 @@ int main(void)
         for (int d = 0; d < 6; d++)
         scanf("%d", &matrikB[c][d]);
 
-    pthread_t thread[MAX_THREAD];
 
     for (int i = 0; i < MAX_THREAD; i++) { 
         int* p; 
@@ -62,15 +62,12 @@ int main(void)
         for(int j = 0; j < 6; j++){
             matriksShare[i][j] =  matrikC[i][j];
             printf("%d\t", matriksShare[i][j]);
-            
         }
         printf("\n");
     }
-    sleep(30);
-    printf("selesai");
+    // sleep(30);
+    // printf("selesai");
 
     shmdt(matriksShare);
-    shmctl(shmid, IPC_RMID, NULL);
-  //return 0;
-
+    // shmctl(shmid, IPC_RMID, NULL);
 }
