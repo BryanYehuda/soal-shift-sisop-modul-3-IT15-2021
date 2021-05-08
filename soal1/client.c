@@ -1,11 +1,47 @@
 #include <stdio.h>
-#include <sys/socket.h>
+#include <dirent.h>
 #include <stdlib.h>
-#include <netinet/in.h>
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #define PORT 8080
+
+int foldermaker()
+{
+    DIR *dp;
+    struct dirent *ep;
+    char path[100];
+
+    printf("Enter path to list files: ");
+    getcwd(path, 100);
+    printf("%s\n", path);
+    dp = opendir(path);
+
+    if (dp != NULL) 
+    {
+        char *FILES= "FILES";
+        int foldernya = 0;
+        while ((ep = readdir (dp))) 
+        {
+            if(strncmp(ep->d_name, FILES, strlen(FILES)) == 0) printf("ada!\n");
+            else 
+            {
+                foldernya++;
+            }
+        }
+
+        if(foldernya != 0) 
+        {
+            mkdir("FILES", 0777);
+        }
+        (void) closedir (dp);
+
+    } else perror ("tidak bisa dibuka");
+
+    return 0;
+}
   
 int main(int argc, char const *argv[]) 
 {
@@ -72,12 +108,18 @@ int main(int argc, char const *argv[])
         read(sock,message,64);
 
         int status;
-        if(fork()==0){
+        if(fork()==0)
+        {
             execlp("clear","clear",(char *)NULL);
         }
         while((wait(&status)>0));
         puts(message);
+
+        if(strcmp(message,"login success")==0)
+        {
+            foldermaker();
+        }
+
     }
-    
     return 0;
 }
