@@ -27,7 +27,7 @@ void *factorial(void *a){
 
     if(a3==0 || ma==0){
 		matrikE[a1][a2] = 0;
-		printf("pertama\t%d\n",matrikE[a1][a2]);
+		// printf("pertama\t%d\n",matrikE[a1][a2]);
 	}
 	else if (ma > a3)
 	{
@@ -35,7 +35,7 @@ void *factorial(void *a){
             fact *= i;
         }
 		matrikE[a1][a2] = fact;
-		printf("kedua\t%d %d %d\n", ma, a3, matrikE[a1][a2]);
+		// printf("kedua\t%d %d %d\n", ma, a3, matrikE[a1][a2]);
 	}
 	else
 	{
@@ -47,7 +47,7 @@ void *factorial(void *a){
             fact2 *= i;
         }
 		matrikE[a1][a2] = fact/fact2;
-		printf("ketiga\t%d %d %d\n", ma, a3, matrikE[a1][a2]);
+		// printf("ketiga\t%d %d %d\n", ma, a3, matrikE[a1][a2]);
 	}	
 }
 
@@ -81,12 +81,12 @@ void main()
 			mynode.f=c;
 			mynode.h=d;
 			mynode.o=matriksShare[c][d];
-			printf("%d %d\n", matrikD[c][d], mynode.o);
+			// printf("%d %d\n", matrikD[c][d], mynode.o);
        		pthread_create(&(thread[c * 6 + d]),NULL,&factorial,(void*) &mynode);
       		pthread_join(thread[c * 6 + d],NULL);
 		}
 	}
-	printf("Hasil perhitungan dengan matrix baru :\n");
+	printf("\nHasil perhitungan dengan matrix baru :\n");
 	for (int c = 0; c < 4; c++){
 		for (int d = 0; d < 6; d++){
 			printf("%d\t", matrikE[c][d]);
