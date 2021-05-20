@@ -354,3 +354,6 @@ dan berikut adalah hasil run untuk test case 2
 Selanjutnya kita mencoba untuk test case 3 `("\*")`
 ![Soal3Ian7](https://user-images.githubusercontent.com/50267676/118946730-e1ca0e00-b980-11eb-8863-d9b7d0e7a2d8.PNG)
 ![Soal3Ian6](https://user-images.githubusercontent.com/50267676/118946735-e393d180-b980-11eb-8e75-9759ec178c9e.png)
+
+## Kesulitan yang dihadapi
+1. Contoh test case yang diberikan sangat sedikit sehingga tidak tahu mana yang benar setalah menjalankan program untuk mengkategorikan directory soal3
