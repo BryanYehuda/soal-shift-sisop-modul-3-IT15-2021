@@ -102,30 +102,20 @@ pada fungsi processFiles diatas, kita menerima sebuah parameter yang merupakan s
 char* getExt(char *namaFile){
     char *token ;
     char *str = namaFile;
-    // printf("namaFile = %s\n", str);
     char *ret;
     ret = strrchr(str, '/'); 
     if(ret != NULL){
-        // printf("%s\n", ret);
         if(ret[1]=='.'){
             token = "hidden";
             return token;
         }
     }
-    // if(str[0]=='.'){
-    //     token = "hidden";
-    //     return token;
-    // }
     token = strtok(str, ".");
-    // printf("ini token1 = %s\n", token);
     token = strtok(NULL, "");
-    // printf("ini token1 = %s\n", token);
     if(token == NULL){
         token = "unknown";
         return token;
     }
-    // printf("%s\n", token);
-    // printf("Token = %s\n", token);
     for(int i = 0; token[i]; i++){
        token[i] = tolower(token[i]);
     }
@@ -133,3 +123,4 @@ char* getExt(char *namaFile){
     return token;
 }
 ```
+pada fungsi diatas pertama kali kita akan memisahkan tanda "/" dari lokasi file menggunakan `strrchr` setelah itu akan dilakukan pengecekan apakah ada tanda titik dipaling pertama dari namafile. jika ada maka itu merupakan kategori hidden, setelah itu kita cari titik paling pertama muncul setelah nama file untuk dijadikan sebuah extensi. extensi yang diambil adalah mulai dari titik pertama muncul hingga ke titik terakhir muncul. Setalah itu, semua ext yang telah didapat akan dibuat kedalam huruf kecil lalu nilainya di return
