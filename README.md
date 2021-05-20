@@ -2,6 +2,118 @@
 Ini adalah repository yang dibuat untuk menampung Jawaban Soal Shift Sisop Modul 3
 # Soal 1
 # Soal 2
+## Soal 2a
+pada soal 2a ini kita akan memasukan matriks 4 x 3 dan juga 3 x 6 lalu dimasukan ke dalam fungsi perkalian matriks dengan code sebagai berikut
+```c
+void* perkalianMatriks(void *arg)
+{
+    
+    for (int i = iter ; i < (iter + 1) ; i++){
+        for(int j = 0; j < 6; j++){
+            for(int k =0; k < 4; k++){
+                matrikC[i][j] += matrikA[i][k] * matrikB[k][j];         
+            }
+        }   
+    }
+    iter++;
+}
+```
+setelah itu hasil perkalian tersebut akan dimasukan ke dalam shared memory lalu diprint.
+```c
+printf("\nHasil :\n");
+for(int i =0; i < 4; i++){
+    for(int j = 0; j < 6; j++){
+        matriksShare[i][j] =  matrikC[i][j];
+        printf("%d\t", matriksShare[i][j]);
+    }
+    printf("\n");
+}
+```
+
+## Soal 2b
+sama seperti 2a kita juga akan memasukan matriks, disini kita akan memasukan matriks 6 x 6 lalu akan dibandingkan dengan matriks hasil perkalian soal 2a menggunakan shared memory. karena kita akan melakukan proses secara pararel untuk setiap element matriks maka kita akan menggunakan trhead dan juga struct node untuk memparsing iterasi.
+```c
+pthread_t thread[24];
+key_t key = 1234;
+int (*matriksShare)[10];
+int shmid = shmget(key, sizeof(int), IPC_CREAT | 0666);
+matriksShare = shmat(shmid, 0, 0);
+
+node mynode;
+
+for (int c = 0; c < 4; c++){
+	for (int d = 0; d < 6; d++){
+		mynode.f=c;
+		mynode.h=d;
+		mynode.o=matriksShare[c][d];
+		// printf("%d %d\n", matrikD[c][d], mynode.o);
+		pthread_create(&(thread[c * 6 + d]),NULL,&factorial,(void*) &mynode);
+		pthread_join(thread[c * 6 + d],NULL);
+	}
+}
+```
+setelah itu akan dimasukan ke dalam fungsi factorial sebagai berikut. nilai dari node f, h, dan o akan dimasukan kedalam int a1, a2, dan a3.
+```c
+void *factorial(void *a){
+	node *args = (node *) a;
+	int a1=args->f;
+	int a2=args->h;
+	int a3=args->o;
+	long long fact=1, fact2 = 1;
+	int ma = matrikD[a1][a2];
+
+    if(a3==0 || ma==0){
+		matrikE[a1][a2] = 0;
+	}
+	else if (ma > a3)
+	{
+		for (int i = 1; i <= a3; ++i) {
+            fact *= i;
+        }
+		matrikE[a1][a2] = fact;
+	}
+	else
+	{
+		int m = (a3-ma);
+		for (int i = 1; i <= a3; ++i) {
+            fact *= i;
+        }
+		for (int i = 1; i <= m; ++i) {
+            fact2 *= i;
+        }
+		matrikE[a1][a2] = fact/fact2;
+	}	
+}
+```
+lalu diprint.
+```c
+printf("\nHasil perhitungan dengan matrix baru :\n");
+for (int c = 0; c < 4; c++){
+	for (int d = 0; d < 6; d++){
+		printf("%d\t", matrikE[c][d]);
+	}
+	printf("\n");
+}
+```
+
+## Soal 2c
+pada soal 2c kita akan membuat sebuah program untuk Inter-process communication dengan melihat 5 proses teratas pada sistem kita menggunakan pipe. untuk codenya sudah ada di file github.
+
+## Hasil Run
+**soal 2a**  
+![image](https://user-images.githubusercontent.com/73151866/118959043-26a77200-b98c-11eb-9011-7041760d6a8d.png)  
+
+**soal 2b**  
+![image](https://user-images.githubusercontent.com/73151866/118960144-2f4c7800-b98d-11eb-8e29-3c87dc54cdd7.png)  
+
+**soal 2c**  
+hasil run program  
+![image](https://user-images.githubusercontent.com/73151866/118960330-60c54380-b98d-11eb-8959-07df35d013b7.png)  
+
+hasil run command di terminal  
+![image](https://user-images.githubusercontent.com/73151866/118960453-82bec600-b98d-11eb-8d57-f070d93f3832.png)  
+
+
 # Soal 3
 pertama kami membuat kode yang didalamnya akan memisahkan setiap perintah yang ada dari terminal, kodenya terlihat seperti ini
 ```c
