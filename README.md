@@ -123,4 +123,102 @@ char* getExt(char *namaFile){
     return token;
 }
 ```
-pada fungsi diatas pertama kali kita akan memisahkan tanda "/" dari lokasi file menggunakan `strrchr` setelah itu akan dilakukan pengecekan apakah ada tanda titik dipaling pertama dari namafile. jika ada maka itu merupakan kategori hidden, setelah itu kita cari titik paling pertama muncul setelah nama file untuk dijadikan sebuah extensi. extensi yang diambil adalah mulai dari titik pertama muncul hingga ke titik terakhir muncul. Setalah itu, semua ext yang telah didapat akan dibuat kedalam huruf kecil lalu nilainya di return
+pada fungsi diatas pertama kali kita akan memisahkan tanda "/" dari lokasi file menggunakan `strrchr` setelah itu akan dilakukan pengecekan apakah ada tanda titik dipaling pertama dari namafile. jika ada maka itu merupakan kategori hidden, setelah itu kita cari titik paling pertama muncul setelah nama file untuk dijadikan sebuah extensi. extensi yang diambil adalah mulai dari titik pertama muncul hingga ke titik terakhir muncul. Setalah itu, semua ext yang telah didapat akan dibuat kedalam huruf kecil lalu nilainya di return  
+
+  
+- getFileName
+```c
+char* getFileName(char *namaFiles){
+    char *token ;
+    char *str = namaFiles;
+    token = strtok(str, "/");
+    int jumlah=0;
+    char *namaFile[10];
+    while( token != NULL ) {
+      namaFile[jumlah] = token;
+      token = strtok(NULL, "/");
+      jumlah++;
+   }
+    return namaFile[jumlah-1];
+}
+```
+untuk mendapatkan nama files, kami menggunakan `strtok` untuk memisahkan semua tanda "/" pada lokasi files, setelah itu kami return nilai dari 2 terakhir yang muncul.  
+  
+  
+- createDirectory
+```c
+void createDirectory(char *ext){
+    int check =  mkdir(ext,0777);
+}
+```
+setelah mendapatkan ext ataupun token dari lokasi file yang diinputkan user, maka kami membuat directory berdasarkan ext tersebut dengan menggunakan perintah `mkdir`.  
+  
+    
+- moveFile
+```c
+char berhasil = '1';
+void moveFile(char *location, char *namaFile, char *ext){
+    int ret;
+    char newname[2000];
+    if(strcmp(ext, "unknown")==0 || strcmp(ext, "hidden")==0 ){
+        snprintf(newname, sizeof newname, "%s/%s", ext, namaFile);
+    }else{
+        snprintf(newname, sizeof newname, "%s/%s.%s", ext, namaFile, ext);
+    }
+    ret = rename(location, newname);
+    if(strcmp(command, file)==0){
+        if(ret == 0) {
+            printf("File %d : Berhasil Dikategorikan\n", jumlah);
+        } else {
+            printf("File %d : Sad, gagal :(\n", jumlah);
+        }
+        jumlah++;
+    }else if((strcmp(command, file)!=0)){
+        if(ret != 0){
+            berhasil = '0';
+        }
+    }
+}
+```
+pada fungsi ini, kita harus menyusun sedemikian rupa dari lokasi files yang dikirim user, nama file yang sudah kita dapat serta ext yang juga sudah kita tentukan agar menjadi suatu lokasi baru dari file tersebut. Setelah kita berhasil menyusun lokasi baru tersebut, maka kita gunakan perintah `rename` dengan parameter pertama adalah lokasi file terkini dan parameter kedua adalah lokasi kemana kita ingin memindahkan file tersebut. Unutk case "-f" setiap file yang dipindahkan akan dicek berhasil dipindahkan atau belum. Untuk kasus "-d" kami menggunakan suatu parameter global yang bernama `berhasil` yang akan dirubah nilainya menjadi 0 jika terjadi kegagalan dalam memindahkan file. Nah, nilai dari berhasil ini yang nanti akan dieavluasi di fungsi "-d"  
+  
+    
+- listFilesRecursively
+```c
+char infos[10000][10000];
+void listFilesRecursively(char *basePath)
+{
+    char path[1000];
+    struct dirent *dp;
+    DIR *dir = opendir(basePath);
+
+    if (!dir)
+        return;
+    while ((dp = readdir(dir)) != NULL)
+    {
+        if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
+        {
+            strcpy(path, basePath);
+            strcat(path, "/");
+            strcat(path, dp->d_name);
+            char check[10000];
+            snprintf(check, sizeof check, "%s", dp->d_name);
+            if(check[0]=='.'){
+                createDirectory("hidden");
+                char moves[10000];
+                snprintf(moves, sizeof moves, "hidden/%s", dp->d_name);
+                rename(path, moves);
+            }else{
+                char loc[1000];
+                strcpy(loc, path);
+                snprintf(infos[banyak], sizeof loc, "%s", loc);
+                banyak = banyak + 1;
+                banyakFile++;
+            }
+            listFilesRecursively(path);
+        }
+    }
+    closedir(dir);
+}
+```
+kode ini merupakan kode template yang terdapat dalam module2. Perbadaan yang kami lakukan adalah, untuk setiap path yang dicek akan dimasukkan terlebih dahulu kedalam array infos.
