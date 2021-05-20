@@ -29,4 +29,42 @@ if(strcmp(perintah, file)==0){
         pthread_join(tid[i],NULL);
     }
 }
+```  
+
+Pada soal, dengan memasukkan input "-d" maka user dapat mengkategorikan sebuah directory. Ide yang muncul saat melihat case ini adalah menggunakan kode untuk melakukan traverse secara rekursif di sebuah directory, untuk itu kami menggunakan kode template listFilesRecursivly pada modul 2 dengan beberapa perubahan didalamnya. Perubahan yang kami tambahkan adalah, untuk setiap files yang sudah di traverse akan disimpan dalam sebuah array (akan dijelaskan lebih lanjut pada penjelasan fungsi traversefilesrecursivly). setelah itu, untuk masing masing file yang ada dalam array akan kami process menggunakan thread dan memanggil fungsi processfiles. setelah membuat thread, maka semua thread nya akan dijoin. Berikut adalah implementasi nya
+```c
+else if(strcmp(perintah, directory)==0){
+    dicName = argv[2];
+    listFilesRecursively(argv[2]);
+    for(int i=0; i<banyakFile; i++){
+
+        pthread_create(&(tid[i]), NULL, processFiles, (char*)infos[i]);
+    }
+    for(int i=0;i < banyakFile ; i++){
+        pthread_join(tid[i],NULL);
+    }
+    if(berhasil=='1'){
+        printf("Direktori sukses disimpan!\n");
+    }else{
+        printf("Yah, gagal disimpan :(");
+    }
+}
+```  
+
+Pada soal, kita dapat mengkategorikan current directory dengan menggunakan perintah "\*". Hal ini sama dengan kasus "-d" sebelumnya, hanya saja dengan perintah ini kita hanya perlu mengirim current working directory ke fungsi listFilesRecursively. Berikkut adalah implementasi kode yang kami buat
+```c
+else if(strcmp(perintah, "*")==0){
+    char *buf;
+    buf=(char *)malloc(100*sizeof(char));
+    getcwd(buf,100);
+    listFilesRecursively(buf);
+    for(int i=0; i<banyakFile; i++){
+
+        pthread_create(&(tid[i]), NULL, processFiles, (char*)infos[i]);
+    }
+    for(int i=0;i < banyakFile ; i++){
+        pthread_join(tid[i],NULL);
+    }
+}
 ```
+dapat kita lihat pada kode tersebut, kita mendapatkan current working directory dengan memanggil getcwd dan memparsing hasilnya ke variabel buf. setelah itu kita traverse directorynya.
