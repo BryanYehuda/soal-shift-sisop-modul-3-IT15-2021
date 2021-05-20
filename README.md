@@ -1,6 +1,7 @@
 # soal-shift-sisop-modul-3-IT15-2021
 Ini adalah repository yang dibuat untuk menampung Jawaban Soal Shift Sisop Modul 3
-
+# Soal 1
+# Soal 2
 # Soal 3
 pertama kami membuat kode yang didalamnya akan memisahkan setiap perintah yang ada dari terminal, kodenya terlihat seperti ini
 ```c
