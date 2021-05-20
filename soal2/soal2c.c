@@ -17,6 +17,7 @@ int main()
         close(pi[1]);
         execlp("ps", "ps", "aux", NULL);
     }
+
     pipe(pi2);
 
     if (fork() == 0)
@@ -36,7 +37,6 @@ int main()
 
     if (fork() == 0)
     {
-
         close(pi2[1]);
         dup2(pi2[0], 0);
         close(pi2[0]);
