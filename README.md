@@ -113,6 +113,9 @@ hasil run program
 hasil run command di terminal  
 ![image](https://user-images.githubusercontent.com/73151866/118960453-82bec600-b98d-11eb-8d57-f070d93f3832.png)  
 
+## Kendala yang Dihadapi
+- Kami bingung bagaimana cara untuk memparsing iterasi untuk digunakan di fungsi factorial.
+- Ketika input terlalu besar maka output tergadang menjadi tidak sesuai dengan yang diharapkan.
 
 # Soal 3
 pertama kami membuat kode yang didalamnya akan memisahkan setiap perintah yang ada dari terminal, kodenya terlihat seperti ini
