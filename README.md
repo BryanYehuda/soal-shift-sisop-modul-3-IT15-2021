@@ -229,4 +229,11 @@ kami membuat 2 buah file yang akan dikategorikan
 ![image_2021-05-20_151556](https://user-images.githubusercontent.com/50267676/118943926-46379e00-b97e-11eb-950b-da8fb1e2c8dd.png)  
 dan berikut adalah hasil run untuk case 1  
 
-![Soal3Ian2](https://user-images.githubusercontent.com/50267676/118945010-44220f00-b97f-11eb-8eef-5b10a9e193c8.png)
+![Soal3Ian2](https://user-images.githubusercontent.com/50267676/118945010-44220f00-b97f-11eb-8eef-5b10a9e193c8.png)  
+
+Selanjutnya kita mencoba untuk test case 2 `("-d")`  
+
+![Soal3Ian3](https://user-images.githubusercontent.com/50267676/118945598-cc081900-b97f-11eb-9f2c-433ad7c54349.PNG)  
+dan berikut adalah hasil run untuk test case 2
+![Soal3Ian5](https://user-images.githubusercontent.com/50267676/118946038-3ae57200-b980-11eb-9fd8-90c8d6f6dfaa.PNG)
+![Soal3Ian4](https://user-images.githubusercontent.com/50267676/118946045-3c169f00-b980-11eb-8277-c0f25906725f.png)
