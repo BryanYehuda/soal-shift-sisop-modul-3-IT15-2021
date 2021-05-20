@@ -222,3 +222,7 @@ void listFilesRecursively(char *basePath)
 }
 ```
 kode ini merupakan kode template yang terdapat dalam module2. Perbadaan yang kami lakukan adalah, untuk setiap path yang dicek akan dimasukkan terlebih dahulu kedalam array infos.
+
+## hasil Run
+kami membuat 2 buah file yang akan dikategorikan
+![image_2021-05-20_151556](https://user-images.githubusercontent.com/50267676/118943926-46379e00-b97e-11eb-950b-da8fb1e2c8dd.png)
