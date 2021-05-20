@@ -31,7 +31,7 @@ for(int i =0; i < 4; i++){
 ```
 
 ## Soal 2b
-sama seperti 2a kita juga akan memasukan matriks, disini kita akan memasukan matriks 6 x 6 lalu akan dibandingkan dengan matriks hasil perkalian soal 2a menggunakan shared memory. karena kita akan melakukan proses secara pararel untuk setiap element matriks maka kita akan menggunakan trhead dan juga struct node untuk memparsing iterasi.
+sama seperti 2a kita juga akan memasukan matriks, disini kita akan memasukan matriks 4 x 6 lalu akan dibandingkan dengan matriks hasil perkalian soal 2a menggunakan shared memory. karena kita akan melakukan proses secara pararel untuk setiap element matriks maka kita akan menggunakan trhead dan juga struct node untuk memparsing iterasi.
 ```c
 pthread_t thread[24];
 key_t key = 1234;
