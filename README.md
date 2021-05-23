@@ -1,6 +1,8 @@
 # soal-shift-sisop-modul-3-IT15-2021
 Ini adalah repository yang dibuat untuk menampung Jawaban Soal Shift Sisop Modul 3
 # Soal 1
+pada soal ini dibutuhkan client dan server yang nantinya digunakan untuk membuat request terhadap perintah yang dipilih. kemudian client akan melakukan register dan login. jika client memilih register maka akan diminta input id dan password yang nantinya dikirimkan ke server . jika client memilih login maka client akan melakukan input id dan password yang sesuai dengan data pada server. Server dapat menerima multiconection dan jika terdapat 2 request client atau lebih maka yang lain akan menunggu terlebih dahulu untuk diproses.
+
 # Soal 2
 ## Soal 2a
 pada soal 2a ini kita akan memasukan matriks 4 x 3 dan juga 3 x 6 lalu dimasukan ke dalam fungsi perkalian matriks dengan code sebagai berikut
