@@ -25,7 +25,7 @@ int error(char *err)
     exit(EXIT_FAILURE);
 }
 
-struct orang
+struct user
 {
     char name[1000];
     char pwd[1000];
@@ -33,13 +33,13 @@ struct orang
     char mode[1000];
     int is_auth;
     int socket;
-} orang_data;
+} user_data;
 
 void message(char input[])
 {
     char buffer[1024];
     sprintf(buffer, "\n%s\n", input);
-    send(orang_data.socket, buffer, 1024, 0);
+    send(user_data.socket, buffer, 1024, 0);
 }
 
 int login(char id[], char password[])
@@ -50,7 +50,6 @@ int login(char id[], char password[])
     while (fgets(buffer, 1024, fp) != NULL && is_auth == 0)
     {
         char file_id[1024], file_password[1024];
-        //Memisahkan id dan password pada file
         char *token = strtok(buffer, ":");
         strcpy(file_id, token);
         token = strtok(NULL, "\n");
@@ -71,7 +70,7 @@ int login(char id[], char password[])
 
 void regist(char id[], char password[])
 {
-    FILE *fp = fopen("akun.txt", "a");
+    FILE *fp = fopen("akun.txt", "a"); 
     fprintf(fp, "%s:%s\n", id, password);
     fclose(fp);
 }
@@ -85,7 +84,7 @@ int addtsv(int year)
         printf("File cannot be opened");
         return 1;
     }
-    fprintf(fp, "\nFILES/%s\t%s\t%d", orang_data.file, orang_data.name, year);
+    fprintf(fp, "\nFILES/%s\t%s\t%d", user_data.file, user_data.name, year);
     fclose(fp);
     return 0;
 }
@@ -107,7 +106,7 @@ int receive_file(int socket, char *fname)
     FILE *file_masuk = fopen(fpath, "wb");
     if (file_masuk == NULL)
     {
-        printf("File %s, Cannot be made in the server.\n", fname);
+        printf("File %s, cannot be made in the server\n", fname);
     }
     else
     {
@@ -118,7 +117,7 @@ int receive_file(int socket, char *fname)
             int write_size = fwrite(buffer, sizeof(char), file_size, file_masuk);
             if (write_size < file_size)
             {
-                error("Writing on the server failed.");
+                error("Failed to write on the server");
             }
             bzero(buffer, MAX_LENGTH);
             if (file_size == 0 || file_size != MAX_LENGTH)
@@ -130,32 +129,32 @@ int receive_file(int socket, char *fname)
         {
             if (errno == EAGAIN)
             {
-                printf("Timeout.\n");
+                printf("Timeout\n");
             }
             else
             {
-                fprintf(stderr, "failed = %d\n", errno);
+                fprintf(stderr, "Failure = %d\n", errno);
                 exit(1);
             }
         }
-        printf("Accepting file from client!\n");
+        printf("Receiving file from client\n");
     }
     fclose(file_masuk);
-    printf("File %s from client accepted!\n", orang_data.file);
+    printf("File %s from client successfully accepted\n", user_data.file);
     char msg[1000], publisher[1000], path[1000], log[1000];
     time_t now;
     time(&now);
     struct tm *local = localtime(&now);
     int year = local->tm_year + 1900;
 
-    strcpy(publisher, orang_data.name);
-    strcpy(path, orang_data.file);
+    strcpy(publisher, user_data.name);
+    strcpy(path, user_data.file);
     sprintf(msg, "Publisher: %s\nTahun Publikasi: %d\nFilepath: Client/%s", publisher, year, path);
     message(msg);
     addtsv(year);
-    sprintf(log, "Added : %s (%s:%s)\n", orang_data.file, orang_data.name, orang_data.pwd);
+    sprintf(log, "Add : %s (%s:%s)\n", user_data.file, user_data.name, user_data.pwd);
     catatlog(log);                         
-    strcpy(orang_data.mode, "recvstrings");
+    strcpy(user_data.mode, "recvstrings"); 
 }
 
 int fileExist(char *fname)
@@ -185,7 +184,7 @@ int send_file(int socket, char *fname)
     FILE *file = fopen(fpath, "r");
     if (file == NULL)
     {
-        printf("File %s missing.\n", fname);
+        printf("File %s missing\n", fname);
         return -1;
     }
     bzero(buffer, MAX_LENGTH);
@@ -208,45 +207,45 @@ void download(int accept_sockfd, char *fname)
     char buffer[MAX_LENGTH];
     if (fileExist(fname))
     {
-        printf("File %s Terdapat diserver\n", fname);
+        printf("File %s is not on the server\n", fname);
         char msg[1024];
         if (send_file(accept_sockfd, fname) == 0)
         {
-            printf("File has been sent!\n");
-            strcpy(orang_data.mode, "recvstrings");
+            printf("File has been sent\n");
+            strcpy(user_data.mode, "recvstrings");
         }
         else
         {
-            printf("File failed to be send\n");
-            strcpy(orang_data.mode, "recvstrings");
+            printf("File failed to be sent\n");
+            strcpy(user_data.mode, "recvstrings");
         }
     }
     else
     {
         char msg[1024];
-        sprintf(msg, "File %s not on the server", fname);
+        sprintf(msg, "File %s is not on the server", fname);
         message(msg);
-        strcpy(orang_data.mode, "recvstrings");
+        strcpy(user_data.mode, "recvstrings");
     }
 }
 
 void addfile()
 {
-    if (fileExist(orang_data.file))
-    { 
-        message("File already on server\n");
-        strcpy(orang_data.mode, "recvstrings");
+    if (fileExist(user_data.file))
+    {
+        message("File is already on the server\n");
+        strcpy(user_data.mode, "recvstrings");
     }
     else
-    { 
-        message("File not on server, Preparing to receive file!");
-        strcpy(orang_data.mode, "recvimage");
-        receive_file(orang_data.socket, orang_data.file);
+    {
+        message("File is not on the server, Preparing to receive file");
+        strcpy(user_data.mode, "recvimage");
+        receive_file(user_data.socket, user_data.file);
     }
 }
 
 void deletedb(char word[])
-{
+{ 
     FILE *fp;
     char line[1024];
     char *buffer;
@@ -264,7 +263,6 @@ void deletedb(char word[])
             fgets(line, 1000, fp);
             if (strstr(line, word) == NULL)
             {
-                //printf("%s",line);
                 strcpy(ptr, line);
                 ptr += strlen(line);
             }
@@ -284,22 +282,22 @@ void deletedb(char word[])
 void deletefile()
 {
     char newName[1000], name[1000], db[1000];
-    chdir("FILES");
-    sprintf(newName, "old-%s", orang_data.file);
-    if (rename(orang_data.file, newName) == 0)
+    chdir("FILES"); 
+    sprintf(newName, "old-%s", user_data.file);
+    if (rename(user_data.file, newName) == 0)
     {
-        message("File deleted");
-        printf("File %s has been deleted.", orang_data.file);
+        message("File successfully deleted");
+        printf("File %s has been deleted", user_data.file);
         chdir("../"); 
-        sprintf(name, "Delete : %s (%s:%s)", orang_data.file, orang_data.name, orang_data.pwd);
-        catatlog(name);
-        sprintf(db, "FILES/%s", orang_data.file);
+        sprintf(name, "Delete : %s (%s:%s)", user_data.file, user_data.name, user_data.pwd);
+        catatlog(name); 
+        sprintf(db, "FILES/%s", user_data.file);
         deletedb(db);
     }
     else
     {
-        printf("File %s Failed to be deleted.", orang_data.file);
-        message("Files failed to be deleted");
+        printf("File %s failed to be deleted", user_data.file);
+        message("File failed to be deleted");
     }
 }
 
@@ -323,7 +321,7 @@ void seeallfile()
             column = 0;
             row++;
 
-            if (row == 1)
+            if (row == 1) 
                 continue;
 
             char *value = strtok(buffer, "\t");
@@ -368,7 +366,7 @@ void seeallfile()
 }
 
 void find(char *word)
-{
+{ 
     char line[1024];
     char buffer[1024];
     FILE *fp = fopen("files.tsv", "r");
@@ -385,22 +383,22 @@ void find(char *word)
 void setfile(char cmd[])
 { 
     char *fname;
-    cmd = strtok(NULL, " ");
+    cmd = strtok(NULL, " "); 
     fname = cmd;
-    memset(orang_data.file, 0, 1000);
-    strcpy(orang_data.file, fname);
+    memset(user_data.file, 0, 1000);
+    strcpy(user_data.file, fname);
 }
 
 void loginsukses()
 {
     char msg[1024], buffer[1024];
     message("\e[1;1H\e[2J");
-    printf("\norang %s Has logged in.\n", orang_data.name);
+    printf("\nUser %s Has successfully logged in.\n", user_data.name);
     message("Login Success!");
-    while (strcmp(buffer, "exit") != 0 || strcmp(orang_data.mode, "recvstrings") == 0)
+    while (strcmp(buffer, "exit") != 0 || strcmp(user_data.mode, "recvstrings") == 0)
     {
         message("Input Command: ");
-        read(orang_data.socket, buffer, 1024);
+        read(user_data.socket, buffer, 1024);
         char cmd_line[MAX_LENGTH];
         strcpy(cmd_line, buffer);
         char *cmd = strtok(cmd_line, " ");
@@ -411,12 +409,12 @@ void loginsukses()
         if (strcmp(cmd, "add") == 0)
         {
             setfile(cmd);
-            addfile();
+            addfile(); 
         }
         else if (strcmp(cmd, "download") == 0)
         { 
             setfile(cmd);
-            download(orang_data.socket, orang_data.file);
+            download(user_data.socket, user_data.file);
         }
         else if (strcmp(cmd, "delete") == 0)
         { 
@@ -428,9 +426,9 @@ void loginsukses()
             seeallfile();
         }
         else if (strcmp(cmd, "find") == 0)
-        { 
+        {
             setfile(cmd);
-            find(orang_data.file);
+            find(user_data.file);
         }
         else if (strcmp(cmd, "clear") == 0)
         {
@@ -449,13 +447,13 @@ void *input_main()
     char buffer[1024];
     while (1)
     {
-        if (orang_data.is_auth == 0)
+        if (user_data.is_auth == 0)
         { 
             message("1. Login\n"
                     "2. Register\n"
                     "Choices: ");
 
-            read(orang_data.socket, buffer, 1024); 
+            read(user_data.socket, buffer, 1024); 
             for (int i = 0; buffer[i]; i++)
             { 
                 buffer[i] = tolower(buffer[i]);
@@ -466,24 +464,24 @@ void *input_main()
                 char password[1024];
                 message("\e[1;1H\e[2J");
                 message("Id: ");
-                read(orang_data.socket, id, 1024);
+                read(user_data.socket, id, 1024);
 
                 message("Password: ");
-                read(orang_data.socket, password, 1024);
+                read(user_data.socket, password, 1024);
 
-                orang_data.is_auth = login(id, password); 
-                if (orang_data.is_auth == 0)
-                {
+                user_data.is_auth = login(id, password); 
+                if (user_data.is_auth == 0)
+                { 
                     message("\e[1;1H\e[2J");
-                    message("Login Failed id/password is wrong!");
-                    printf("Login Failed id/password is wrong!\n");
+                    message("Login failed id/password is wrong!");
+                    printf("Login failed id/password is wrong!\n");
                     break;
                 }
-                else if (orang_data.is_auth == 1)
+                else if (user_data.is_auth == 1)
                 {
-                    strcpy(orang_data.name, id);
-                    strcpy(orang_data.pwd, password);
-                    strcpy(orang_data.mode, "recvstrings");
+                    strcpy(user_data.name, id);
+                    strcpy(user_data.pwd, password);
+                    strcpy(user_data.mode, "recvstrings");
                     loginsukses();
                 }
             }
@@ -493,23 +491,23 @@ void *input_main()
                 char password[1024];
                 message("\e[1;1H\e[2J");
                 message("Id: ");
-                read(orang_data.socket, id, 1024);
-				
-                message("Password: ");
-                read(orang_data.socket, password, 1024);
+                read(user_data.socket, id, 1024);
 
-                regist(id, password);
+                message("Password: ");
+                read(user_data.socket, password, 1024);
+
+                regist(id, password); 
 
                 char msg[1024];
                 message("\e[1;1H\e[2J");
-                printf("orang %s has registered.", id);
-                sprintf(msg, "Register orang %s Success... (Press Anything to Continue)", id);
+                printf("User %s is registered", id);
+                sprintf(msg, "User %s Register Completed... (Press Anything to Continue)", id);
                 message(msg);
                 break;
             }
         }
-        else if (orang_data.is_auth == 1)
-        {
+        else if (user_data.is_auth == 1)
+        { 
             loginsukses();
         }
     }
@@ -576,14 +574,14 @@ int main()
     }
     else
     {
-        printf("Connected to client with socket: %d\n", clientsocket);
-        orang_data.socket = clientsocket;
+        printf("Connected with client with the address: %d\n", clientsocket);
+        user_data.socket = clientsocket;
     }
-    orang_data.is_auth = 0
+    user_data.is_auth = 0;
 
     pthread_create(&input, NULL, &input_main, 0);
     while (1)
-    {
+    { 
         if (pthread_join(input, NULL) == 0)
         {
             pthread_create(&input, NULL, &input_main, 0);

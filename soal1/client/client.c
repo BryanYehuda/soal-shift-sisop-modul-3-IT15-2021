@@ -16,14 +16,14 @@
 
 pthread_t input, cetak;
 
-struct orang
+struct user
 {
   int is_auth;
   int socket;
   char file[1000];
   char input[1000];
   char mode[1000];
-} orang_data;
+} user_data;
 
 int error(char *err)
 {
@@ -49,9 +49,9 @@ int fileExist(char *fname)
   return found;
 }
 
-void *orang_cetak(void *arg)
-{ 
-  if (strcmp(orang_data.mode, "recvstrings") == 0)
+void *user_cetak(void *arg)
+{
+  if (strcmp(user_data.mode, "recvstrings") == 0)
   {
     int sock = *(int *)arg;
     char buffer[1024] = {0};
@@ -78,7 +78,7 @@ int send_file(int socket, char *fname)
   FILE *file = fopen(fpath, "r");
   if (file == NULL)
   {
-    printf("File %s missing.\n", fname);
+    printf("File %s not found.\n", fname);
     return -1;
   }
   bzero(buffer, MAX_LENGTH);
@@ -106,7 +106,7 @@ int receive_file(int socket, char *fname)
   FILE *file_masuk = fopen(fpath, "wb");
   if (file_masuk == NULL)
   {
-    printf("File %s, cannot be made on the client.\n", fname);
+    printf("File %s, Cannot be made in client.\n", fname);
   }
   else
   {
@@ -117,7 +117,7 @@ int receive_file(int socket, char *fname)
       int write_size = fwrite(buffer, sizeof(char), file_size, file_masuk);
       if (write_size < file_size)
       {
-        error("Failed to write files.");
+        error("Failed to write file.");
       }
       bzero(buffer, MAX_LENGTH);
       if (file_size == 0 || file_size != MAX_LENGTH)
@@ -133,16 +133,16 @@ int receive_file(int socket, char *fname)
       }
       else
       {
-        fprintf(stderr, "Failed = %d\n", errno);
+        fprintf(stderr, "Failure = %d\n", errno);
         exit(1);
       }
     }
-    printf("Downloading file from the server!\n");
+    printf("Downloading file from server!\n");
   }
   fclose(file_masuk);
-  printf("File %s Has been downloaded!\n", orang_data.file);
-  strcpy(orang_data.mode, "recvstrings");
-  pthread_create(&cetak, NULL, &orang_cetak, (void *)&orang_data.socket);
+  printf("File %s has been downloaded!\n", user_data.file);
+  strcpy(user_data.mode, "recvstrings"); //Set mode ke input strings
+  pthread_create(&cetak, NULL, &user_cetak, (void *)&user_data.socket);
 }
 
 void download(int client_sock, char *fname)
@@ -152,7 +152,7 @@ void download(int client_sock, char *fname)
   if (fileExist(fname))
   {
     printf("There are files with the same name");
-    strcpy(orang_data.mode, "recvstrings");
+    strcpy(user_data.mode, "recvstrings");
   }
   else
   {
@@ -160,69 +160,70 @@ void download(int client_sock, char *fname)
   }
 }
 
-void *orang_input(void *arg)
+void *user_input(void *arg)
 {
-  while (strcmp(orang_data.mode, "recvstrings") == 0)
+  while (strcmp(user_data.mode, "recvstrings") == 0)
   {
     char buffer[1024] = {0};
     bzero(buffer, MAX_LENGTH);
     fgets(buffer, MAX_LENGTH, stdin);
     buffer[strcspn(buffer, "\n")] = 0;
-    send(orang_data.socket, buffer, MAX_LENGTH, 0);
+  
+    send(user_data.socket, buffer, MAX_LENGTH, 0);
 
     char cmd_line[MAX_LENGTH];
     strcpy(cmd_line, buffer);
-    char *cmd = strtok(cmd_line, " "); // Split input
+    char *cmd = strtok(cmd_line, " "); 
 
     for (int i = 0; cmd[i]; i++)
-    {
+    { 
       cmd[i] = tolower(cmd[i]);
     }
 
     if (strcmp("add", cmd) == 0)
     { 
-      strcpy(orang_data.mode, "recvimage");
+      strcpy(user_data.mode, "recvimage");
       char *fname;
-      cmd = strtok(NULL, " ");
+      cmd = strtok(NULL, " "); 
       fname = cmd;
-      strcpy(orang_data.file, fname);
+      strcpy(user_data.file, fname);
       if (!fileExist(fname))
-      {
+      { 
         printf("File %s missing.\n", fname);
         continue;
       }
-      if (send_file(orang_data.socket, fname) == 0)
+      if (send_file(user_data.socket, fname) == 0)
       {
-        printf("File has been sent!!\n");
-        strcpy(orang_data.mode, "recvstrings");
+        printf("File has been sent\n");
+        strcpy(user_data.mode, "recvstrings");
       }
       else
       {
         printf("File failed to be sent\n");
-        strcpy(orang_data.mode, "recvstrings");
+        strcpy(user_data.mode, "recvstrings");
       }
     }
     else if (strcmp("download", cmd) == 0)
-    {
-      strcpy(orang_data.mode, "downimage");
+    { 
+      strcpy(user_data.mode, "downimage");
       char *fname;
       cmd = strtok(NULL, " ");
       fname = cmd;
-      strcpy(orang_data.file, fname);
-      download(orang_data.socket, fname);
+      strcpy(user_data.file, fname);
+      download(user_data.socket, fname);
     }
   }
-  if (strcmp(orang_data.mode, "recvimage") == 0)
+  if (strcmp(user_data.mode, "recvimage") == 0)
   {
-    if (send_file(orang_data.socket, orang_data.file) == 0)
+    if (send_file(user_data.socket, user_data.file) == 0)
     {
-      printf("File has been sent!!\n");
-      strcpy(orang_data.mode, "recvstrings");
+      printf("File has been sent\n");
+      strcpy(user_data.mode, "recvstrings");
     }
     else
     {
       printf("File failed to be sent\n");
-      strcpy(orang_data.mode, "recvstrings");
+      strcpy(user_data.mode, "recvstrings");
     }
   }
 }
@@ -258,21 +259,21 @@ int main(int argc, char const *argv[])
   }
   else
   {
-    orang_data.socket = sock;
+    user_data.socket = sock;
     printf("Connected to server with the address %d\n", sock);
   }
-  strcpy(orang_data.mode, "recvstrings");
+  strcpy(user_data.mode, "recvstrings"); 
 
-  pthread_create(&cetak, NULL, &orang_cetak, (void *)&sock);
-  pthread_create(&input, NULL, &orang_input, (void *)&sock);
+  pthread_create(&cetak, NULL, &user_cetak, (void *)&sock);
+  pthread_create(&input, NULL, &user_input, (void *)&sock);
   while (1)
-  {
+  { 
     if (pthread_join(input, NULL) == 0)
     {
-      pthread_create(&input, NULL, &orang_input, (void *)&sock);
+      pthread_create(&input, NULL, &user_input, (void *)&sock);
     }
   }
-  if (strcmp(orang_data.mode, "recvstrings") == 0)
+  if (strcmp(user_data.mode, "recvstrings") == 0)
   {
     pthread_join(cetak, NULL);
   }
