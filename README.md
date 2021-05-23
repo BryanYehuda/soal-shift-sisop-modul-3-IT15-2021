@@ -3,7 +3,8 @@ Ini adalah repository yang dibuat untuk menampung Jawaban Soal Shift Sisop Modul
 # Soal 1
 pada soal ini dibutuhkan client dan server yang nantinya digunakan untuk membuat request terhadap perintah yang dipilih. kemudian client akan melakukan register dan login. jika client memilih register maka akan diminta input id dan password yang nantinya dikirimkan ke server . jika client memilih login maka client akan melakukan input id dan password yang sesuai dengan data pada server. Server dapat menerima multiconection dan jika terdapat 2 request client atau lebih maka yang lain akan menunggu terlebih dahulu untuk diproses.
 
-Library yang digunakan untuk soal ini:
+## Client 
+# Library yang digunakan untuk soal ini:
 
 #include <stdio.h> = untuk standard input-output
 
@@ -100,7 +101,275 @@ int login(char id[], char password[])
     return is_auth;
 ```
 stukrur ini dugunakan untuk mendefenisikan fungsi login pada server yang diakses dari client
-    
+
+```c
+void *user_cetak(void *arg)
+{
+  if (strcmp(user_data.mode, "recvstrings") == 0)
+  {
+    int sock = *(int *)arg;
+    char buffer[1024] = {0};
+    while (1)
+    {
+      memset(buffer, 0, 1024);
+      if (recv(sock, buffer, 1024, 0) > 1)
+      {
+        char buffer2[1024];
+        strcpy(buffer2, buffer);
+        char *token = strtok(buffer2, "\n");
+        printf("%s", buffer);
+      }
+    }
+  }
+}
+```
+void *user_cetak untuk cetak input user. Variabel sock untuk menyimpan nilai deskriptor file socket server.
+```c
+int send_file(int socket, char *fname)
+{
+  char buffer[MAX_LENGTH] = {0};
+  char fpath[MAX_LENGTH];
+  strcpy(fpath, CLF);
+  strcat(fpath, fname);
+  FILE *file = fopen(fpath, "r");
+  if (file == NULL)
+  {
+    printf("File %s not found.\n", fname);
+    return -1;
+  }
+  bzero(buffer, MAX_LENGTH);
+  int file_size;
+  while ((file_size = fread(buffer, sizeof(char), MAX_LENGTH, file)) > 0)
+  {
+    if (send(socket, buffer, file_size, 0) < 0)
+    {
+      fprintf(stderr, "Failed to send file %s. (errno = %d)\n", fname, errno);
+      break;
+    }
+    bzero(buffer, MAX_LENGTH);
+  }
+  fclose(file);
+  return 0;
+}
+
+```
+int send_file fungsi untuk mengirimkan file. file akan dibuka jika file == NULL akan menampilkan file tidak ada. Lalu akan dilakukan pengecekan pengiriman jika terjadi kesalahan akan menampilkan gagal mengirimkan file.
+
+```c
+int receive_file(int socket, char *fname)
+{
+  pthread_cancel(cetak);
+  char buffer[MAX_LENGTH] = {0};
+  char fpath[MAX_LENGTH];
+  strcpy(fpath, CLF);
+  strcat(fpath, fname);
+  FILE *file_masuk = fopen(fpath, "wb");
+  if (file_masuk == NULL)
+  {
+    printf("File %s, Cannot be made in client.\n", fname);
+  }
+  else
+  {
+    bzero(buffer, MAX_LENGTH);
+    int file_size = 0;
+    while ((file_size = recv(socket, buffer, MAX_LENGTH, 0)) > 0)
+    {
+      int write_size = fwrite(buffer, sizeof(char), file_size, file_masuk);
+      if (write_size < file_size)
+      {
+        error("Failed to write file.");
+      }
+      bzero(buffer, MAX_LENGTH);
+      if (file_size == 0 || file_size != MAX_LENGTH)
+      {
+        break;
+      }
+    }
+    if (file_size < 0)
+    {
+      if (errno == EAGAIN)
+      {
+        printf("Timeout.\n");
+      }
+      else
+      {
+        fprintf(stderr, "Failure = %d\n", errno);
+        exit(1);
+      }
+    }
+    printf("Downloading file from server!\n");
+  }
+  fclose(file_masuk);
+  printf("File %s has been downloaded!\n", user_data.file);
+  strcpy(user_data.mode, "recvstrings"); //Set mode ke input strings
+  pthread_create(&cetak, NULL, &user_cetak, (void *)&user_data.socket);
+}
+```
+int receive_file fungsi untuk menerima file
+file masuk akan dibuka dengan perintah write byte lalu jika file tidak ada maka akan menampilkan File, Tidak dapat dibuat di client. Dimana ukuran file sudah didefinisikan jika tidak sesuai maka akan menampilkan gagal menulis file dan dilakukan pengecekan jika ukuran file sudah sesuai maka file akan didownload dari server apabila sudah didownload akan menampilkan file berhasil didownloads dan file akan ditutup.
+
+```c
+void *user_input(void *arg)
+{
+  while (strcmp(user_data.mode, "recvstrings") == 0)
+  {
+    char buffer[1024] = {0};
+    bzero(buffer, MAX_LENGTH);
+    fgets(buffer, MAX_LENGTH, stdin);
+    buffer[strcspn(buffer, "\n")] = 0;
+  
+    send(user_data.socket, buffer, MAX_LENGTH, 0);
+
+    char cmd_line[MAX_LENGTH];
+    strcpy(cmd_line, buffer);
+    char *cmd = strtok(cmd_line, " "); 
+
+    for (int i = 0; cmd[i]; i++)
+    { 
+      cmd[i] = tolower(cmd[i]);
+    }
+
+    if (strcmp("add", cmd) == 0)
+    { 
+      strcpy(user_data.mode, "recvimage");
+      char *fname;
+      cmd = strtok(NULL, " "); 
+      fname = cmd;
+      strcpy(user_data.file, fname);
+      if (!fileExist(fname))
+      { 
+        printf("File %s missing.\n", fname);
+        continue;
+      }
+      if (send_file(user_data.socket, fname) == 0)
+      {
+        printf("File has been sent\n");
+        strcpy(user_data.mode, "recvstrings");
+      }
+      else
+      {
+        printf("File failed to be sent\n");
+        strcpy(user_data.mode, "recvstrings");
+      }
+    }
+    else if (strcmp("download", cmd) == 0)
+    { 
+      strcpy(user_data.mode, "downimage");
+      char *fname;
+      cmd = strtok(NULL, " ");
+      fname = cmd;
+      strcpy(user_data.file, fname);
+      download(user_data.socket, fname);
+    }
+  }
+  if (strcmp(user_data.mode, "recvimage") == 0)
+  {
+    if (send_file(user_data.socket, user_data.file) == 0)
+    {
+      printf("File has been sent\n");
+      strcpy(user_data.mode, "recvstrings");
+    }
+    else
+    {
+      printf("File failed to be sent\n");
+      strcpy(user_data.mode, "recvstrings");
+    }
+  }
+}
+```
+void *user_input fungsi untuk inputan user dimana Client akan menginput pilihan login dan register. lalu client akan menginputkan id dan passwordnya. Dari data tersebut nantinya akan dikirim ke server. Jika sudah register maka client dapat login. Lalu client dapat menginputkan command add untuk menambahkan file jika file tidak ada akan menampilkan file tidak ada. send(user_data.socket, buffer, MAX_LENGTH, 0); untuk mengirimkan input ke server. cmd[i] = tolower(cmd[i]); untuk merubah input ke lowecase.
+
+```c
+int main(int argc, char const *argv[])
+{
+  struct sockaddr_in address;
+  int sock = 0, valread;
+  struct sockaddr_in serv_addr;
+  char buffer[1024] = {0};
+
+  if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+  {
+    printf("\n Socket creation error \n");
+    return -1;
+  }
+
+  memset(&serv_addr, '0', sizeof(serv_addr));
+
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_port = htons(PORT);
+
+  if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0)
+  {
+    printf("\nInvalid address/ Address not supported \n");
+    return -1;
+  }
+
+  if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+  {
+    printf("\nConnection Failed \n");
+    return -1;
+  }
+  else
+  {
+    user_data.socket = sock;
+    printf("Connected to server with the address %d\n", sock);
+  }
+  strcpy(user_data.mode, "recvstrings"); 
+
+  pthread_create(&cetak, NULL, &user_cetak, (void *)&sock);
+  pthread_create(&input, NULL, &user_input, (void *)&sock);
+  while (1)
+  { 
+    if (pthread_join(input, NULL) == 0)
+    {
+      pthread_create(&input, NULL, &user_input, (void *)&sock);
+    }
+  }
+  if (strcmp(user_data.mode, "recvstrings") == 0)
+  {
+    pthread_join(cetak, NULL);
+  }
+  else
+  {
+    pthread_exit(&cetak);
+  }
+}
+
+```
+Pada fungsi main, dalam fungsi main menggunakan parameter. parameter pertama bertipe data int (argc). Parameter argc berfungsi untuk menunjukkan banyaknya parameter yang digunakan dalam eksekusi program dan yang kedua bertipe data char consts *argv[]). Parameter argv yang akan menyimpan parameter - parameter yang digunakan dalam eksekusi program.
+Variabel serv_addr memiliki beberapa field. Field sin_family harus diset menjadi konstanta simbolic AF_INET. Pada field sin_port harus diisikan dengan port. Agar portabilitas program terjamin maka digunakan fungsi htons() untuk mengubah format biner komputer host ke standar network dalam jenis bilangan short. Fungsi ini akan menyesuaikan byte data sehingga tidak terjadi kesalahan membaca antara host maupun jaringan.
+Pada fungsi inet_pton() mengubah alamat IP yang dapat dibaca menjadi format IPv6 32bit atau 128bit IPv6 yang dikemas. Disini akan melakukan pengecekan error jika terjadi kesalahan pada alamat maka akan menampilkan Invalid address/ Address not supported.
+Pada fungsi connect() akan menghubungkan proses client terhubung dengan server. fungsi ini akan mngembalikan nilai berupa file deskriptor file baru. Argumen kedua adalah penunjuk alamat client dari koneksi. Dan argumen ketiga adalah ukuran dari server_addr. Disini akan melakukan pengecekan error jika terjadi kesalahan pada alamat maka akan menampilkan Connection Failed.
+
+## Server
+
+Library yang digunakan :
+#include <stdio.h> = untuk standard input-output
+
+#include <sys/socket.h> = untuk menjalankan socket
+
+#include <stdlib.h> = untuk fungsi umum
+
+#include <netinet/in.h> = untuk alamat domain internet
+
+#include <string.h> = untuk melakukan manipulasi string, misalnya strcmp()
+
+#include <errno.h> = untuk memberikan tambahan error pada sistem
+
+#include <unistd.h> = untuk melakukan system call fork()
+
+#include <arpa/inet.h> = untuk operasi internet
+
+#include <pthread.h> = untuk bisa menjalankan file c
+
+#include <drent.h> = untuk operasi akses direktori
+
+#include <ctype.h> = untuk mendeklarasikan serangkaian fungsi dan mengklasifikasikan karakter
+
+#include <string.h> = untuk melakukan manipulasi string, misalnya strcmp()
+
+#include <time.h> = untuk manipulasi date and time
+
     
 # Soal 2
 ## Soal 2a
@@ -130,7 +399,6 @@ for(int i =0; i < 4; i++){
     printf("\n");
 }
 ```
-
 ## Soal 2b
 sama seperti 2a kita juga akan memasukan matriks, disini kita akan memasukan matriks 4 x 6 lalu akan dibandingkan dengan matriks hasil perkalian soal 2a menggunakan shared memory. karena kita akan melakukan proses secara pararel untuk setiap element matriks maka kita akan menggunakan trhead dan juga struct node untuk memparsing iterasi.
 ```c
