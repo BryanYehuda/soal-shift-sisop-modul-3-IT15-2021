@@ -3,6 +3,105 @@ Ini adalah repository yang dibuat untuk menampung Jawaban Soal Shift Sisop Modul
 # Soal 1
 pada soal ini dibutuhkan client dan server yang nantinya digunakan untuk membuat request terhadap perintah yang dipilih. kemudian client akan melakukan register dan login. jika client memilih register maka akan diminta input id dan password yang nantinya dikirimkan ke server . jika client memilih login maka client akan melakukan input id dan password yang sesuai dengan data pada server. Server dapat menerima multiconection dan jika terdapat 2 request client atau lebih maka yang lain akan menunggu terlebih dahulu untuk diproses.
 
+Library yang digunakan untuk soal ini:
+
+#include <stdio.h> = untuk standard input-output
+
+#include <sys/socket.h> = untuk menjalankan socket
+
+#include <stdlib.h> = untuk fungsi umum
+
+#include <netinet/in.h> = untuk alamat domain internet
+
+#include <string.h> = untuk melakukan manipulasi string, misalnya strcmp()
+
+#include <errno.h> = untuk memberikan tambahan error pada sistem
+
+#include <unistd.h> = untuk melakukan system call fork()
+
+#include <arpa/inet.h> = untuk operasi internet
+
+#include <pthread.h> = untuk bisa menjalankan file c
+
+#include <drent.h> = untuk operasi akses direktori
+
+#include <ctype.h> = untuk mendeklarasikan serangkaian fungsi dan mengklasifikasikan karakter
+
+#include <string.h> = untuk melakukan manipulasi string, misalnya strcmp()
+
+pthread_t input, received;
+
+```c
+void *input_main();
+int error(char *err)
+{
+    perror(err);
+    exit(EXIT_FAILURE);
+}
+
+struct user
+{
+    char name[1000];
+    char pwd[1000];
+    char file[1000];
+    char mode[1000];
+    int is_auth;
+    int socket;
+} user_data;
+```
+struktur ini digunakan untuk Mendefinisikan port server dan Membuat struct untuk user
+
+```c
+int fileExist(char *fname)
+{
+    int found = 0;
+    DIR *di;
+    struct dirent *dir;
+    di = opendir(SVR);
+    while ((dir = readdir(di)) != NULL)
+    {
+        if (strcmp(dir->d_name, fname) == 0)
+        {
+            found = 1;
+            break;
+        }
+    }
+    closedir(di);
+    return found;
+}
+```
+struktur ini berfungsi untuk mengecek apakah file ada file yang disimpan
+DIR *di untuk membuka path struct dirent *dir untuk entri direktori while dimana kita dapat membaca sesuatu dari direktori. Jika d_name adalah fname lalu break. apabila tidak ada masalah tutup direktori mengembalikan found
+
+```c
+int login(char id[], char password[])
+{
+    FILE *fp = fopen("akun.txt", "r");
+    int is_auth = 0;
+    char buffer[1024];
+    while (fgets(buffer, 1024, fp) != NULL && is_auth == 0)
+    {
+        char file_id[1024], file_password[1024];
+        char *token = strtok(buffer, ":");
+        strcpy(file_id, token);
+        token = strtok(NULL, "\n");
+        strcpy(file_password, token);
+
+        if (strcmp(id, file_id) == 0 && strcmp(password, file_password) == 0)
+        {
+            is_auth = 1;
+        }
+        else
+        {
+            is_auth = 0;
+        }
+    }
+    fclose(fp);
+    return is_auth;
+```
+stukrur ini dugunakan untuk mendefenisikan fungsi login pada server yang diakses dari client
+    
+    
 # Soal 2
 ## Soal 2a
 pada soal 2a ini kita akan memasukan matriks 4 x 3 dan juga 3 x 6 lalu dimasukan ke dalam fungsi perkalian matriks dengan code sebagai berikut
