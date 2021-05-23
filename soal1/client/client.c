@@ -1,125 +1,283 @@
 #include <stdio.h>
-#include <dirent.h>
+#include <sys/socket.h>
 #include <stdlib.h>
+#include <netinet/in.h>
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+#include <pthread.h>
+#include <errno.h>
+#include <dirent.h>
+#include <ctype.h>
+
+#define MAX_LENGTH 1024
 #define PORT 8080
+#define CLF "./"
 
-int foldermaker()
+pthread_t input, cetak;
+
+struct orang
 {
-    DIR *dp;
-    struct dirent *ep;
-    char path[100];
+  int is_auth;
+  int socket;
+  char file[1000];
+  char input[1000];
+  char mode[1000];
+} orang_data;
 
-    printf("Enter path to list files: ");
-    getcwd(path, 100);
-    printf("%s\n", path);
-    dp = opendir(path);
-
-    if (dp != NULL) 
-    {
-        char *FILES= "FILES";
-        int foldernya = 0;
-        while ((ep = readdir (dp))) 
-        {
-            if(strncmp(ep->d_name, FILES, strlen(FILES)) == 0) printf("ada!\n");
-            else 
-            {
-                foldernya++;
-            }
-        }
-
-        if(foldernya != 0) 
-        {
-            mkdir("FILES", 0777);
-        }
-        (void) closedir (dp);
-
-    } else perror ("tidak bisa dibuka");
-
-    return 0;
+int error(char *err)
+{
+  perror(err);
+  exit(EXIT_FAILURE);
 }
-  
-int main(int argc, char const *argv[]) 
+
+int fileExist(char *fname)
 {
-    struct sockaddr_in address;
-    int sock = 0, valread;
-    struct sockaddr_in serv_addr;
-    char *hello = "r";
+  int found = 0;
+  DIR *di;
+  struct dirent *dir;
+  di = opendir(CLF);
+  while ((dir = readdir(di)) != NULL)
+  {
+    if (strcmp(dir->d_name, fname) == 0)
+    {
+      found = 1;
+      break;
+    }
+  }
+  closedir(di);
+  return found;
+}
+
+void *orang_cetak(void *arg)
+{ 
+  if (strcmp(orang_data.mode, "recvstrings") == 0)
+  {
+    int sock = *(int *)arg;
     char buffer[1024] = {0};
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
+    while (1)
     {
-        printf("\n Socket creation error \n");
-        return -1;
+      memset(buffer, 0, 1024);
+      if (recv(sock, buffer, 1024, 0) > 1)
+      {
+        char buffer2[1024];
+        strcpy(buffer2, buffer);
+        char *token = strtok(buffer2, "\n");
+        printf("%s", buffer);
+      }
     }
-  
-    memset(&serv_addr, '0', sizeof(serv_addr));
-  
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
-      
-    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) 
+  }
+}
+
+int send_file(int socket, char *fname)
+{
+  char buffer[MAX_LENGTH] = {0};
+  char fpath[MAX_LENGTH];
+  strcpy(fpath, CLF);
+  strcat(fpath, fname);
+  FILE *file = fopen(fpath, "r");
+  if (file == NULL)
+  {
+    printf("File %s missing.\n", fname);
+    return -1;
+  }
+  bzero(buffer, MAX_LENGTH);
+  int file_size;
+  while ((file_size = fread(buffer, sizeof(char), MAX_LENGTH, file)) > 0)
+  {
+    if (send(socket, buffer, file_size, 0) < 0)
     {
-        printf("\nInvalid address/ Address not supported \n");
-        return -1;
+      fprintf(stderr, "Failed to send file %s. (errno = %d)\n", fname, errno);
+      break;
     }
-  
-    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) 
+    bzero(buffer, MAX_LENGTH);
+  }
+  fclose(file);
+  return 0;
+}
+
+int receive_file(int socket, char *fname)
+{
+  pthread_cancel(cetak);
+  char buffer[MAX_LENGTH] = {0};
+  char fpath[MAX_LENGTH];
+  strcpy(fpath, CLF);
+  strcat(fpath, fname);
+  FILE *file_masuk = fopen(fpath, "wb");
+  if (file_masuk == NULL)
+  {
+    printf("File %s, cannot be made on the client.\n", fname);
+  }
+  else
+  {
+    bzero(buffer, MAX_LENGTH);
+    int file_size = 0;
+    while ((file_size = recv(socket, buffer, MAX_LENGTH, 0)) > 0)
     {
-        printf("\nConnection Failed \n");
-        return -1;
+      int write_size = fwrite(buffer, sizeof(char), file_size, file_masuk);
+      if (write_size < file_size)
+      {
+        error("Failed to write files.");
+      }
+      bzero(buffer, MAX_LENGTH);
+      if (file_size == 0 || file_size != MAX_LENGTH)
+      {
+        break;
+      }
     }
-
-    int status;
-    if(fork()==0)
+    if (file_size < 0)
     {
-        execlp("clear","clear",(char *)NULL);
+      if (errno == EAGAIN)
+      {
+        printf("Timeout.\n");
+      }
+      else
+      {
+        fprintf(stderr, "Failed = %d\n", errno);
+        exit(1);
+      }
     }
-    while((wait(&status)>0));
+    printf("Downloading file from the server!\n");
+  }
+  fclose(file_masuk);
+  printf("File %s Has been downloaded!\n", orang_data.file);
+  strcpy(orang_data.mode, "recvstrings");
+  pthread_create(&cetak, NULL, &orang_cetak, (void *)&orang_data.socket);
+}
 
-    char command[64];
-    char username[64];
-    char password[64];
-    char message[64] = {0};
-    srandom(time(NULL));
+void download(int client_sock, char *fname)
+{
+  char buffer[MAX_LENGTH];
+  bzero(buffer, MAX_LENGTH);
+  if (fileExist(fname))
+  {
+    printf("There are files with the same name");
+    strcpy(orang_data.mode, "recvstrings");
+  }
+  else
+  {
+    receive_file(client_sock, fname);
+  }
+}
 
-    while(1)
+void *orang_input(void *arg)
+{
+  while (strcmp(orang_data.mode, "recvstrings") == 0)
+  {
+    char buffer[1024] = {0};
+    bzero(buffer, MAX_LENGTH);
+    fgets(buffer, MAX_LENGTH, stdin);
+    buffer[strcspn(buffer, "\n")] = 0;
+    send(orang_data.socket, buffer, MAX_LENGTH, 0);
+
+    char cmd_line[MAX_LENGTH];
+    strcpy(cmd_line, buffer);
+    char *cmd = strtok(cmd_line, " "); // Split input
+
+    for (int i = 0; cmd[i]; i++)
     {
-        puts("1. Login\n2. Register");
-        printf("%s","Choices : ");
-        
-        //mendapatkan input command
-        gets(command);
-        send(sock,command,strlen(command),0);
-        if(command[0]=='q')break;
-        
-        //mendapatkan username
-        gets(username);
-        send(sock,username,strlen(username),0);
-        
-        //mendapatkan password
-        gets(password);
-        send(sock,password,strlen(password),0);
-
-        //mendapatkan feedback dari server
-        read(sock,message,64);
-
-        int status;
-        if(fork()==0)
-        {
-            execlp("clear","clear",(char *)NULL);
-        }
-        while((wait(&status)>0));
-        puts(message);
-
-        if(strcmp(message,"login success")==0)
-        {
-            foldermaker();
-        }
-
+      cmd[i] = tolower(cmd[i]);
     }
-    return 0;
+
+    if (strcmp("add", cmd) == 0)
+    { 
+      strcpy(orang_data.mode, "recvimage");
+      char *fname;
+      cmd = strtok(NULL, " ");
+      fname = cmd;
+      strcpy(orang_data.file, fname);
+      if (!fileExist(fname))
+      {
+        printf("File %s missing.\n", fname);
+        continue;
+      }
+      if (send_file(orang_data.socket, fname) == 0)
+      {
+        printf("File has been sent!!\n");
+        strcpy(orang_data.mode, "recvstrings");
+      }
+      else
+      {
+        printf("File failed to be sent\n");
+        strcpy(orang_data.mode, "recvstrings");
+      }
+    }
+    else if (strcmp("download", cmd) == 0)
+    {
+      strcpy(orang_data.mode, "downimage");
+      char *fname;
+      cmd = strtok(NULL, " ");
+      fname = cmd;
+      strcpy(orang_data.file, fname);
+      download(orang_data.socket, fname);
+    }
+  }
+  if (strcmp(orang_data.mode, "recvimage") == 0)
+  {
+    if (send_file(orang_data.socket, orang_data.file) == 0)
+    {
+      printf("File has been sent!!\n");
+      strcpy(orang_data.mode, "recvstrings");
+    }
+    else
+    {
+      printf("File failed to be sent\n");
+      strcpy(orang_data.mode, "recvstrings");
+    }
+  }
+}
+
+int main(int argc, char const *argv[])
+{
+  struct sockaddr_in address;
+  int sock = 0, valread;
+  struct sockaddr_in serv_addr;
+  char buffer[1024] = {0};
+
+  if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+  {
+    printf("\n Socket creation error \n");
+    return -1;
+  }
+
+  memset(&serv_addr, '0', sizeof(serv_addr));
+
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_port = htons(PORT);
+
+  if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0)
+  {
+    printf("\nInvalid address/ Address not supported \n");
+    return -1;
+  }
+
+  if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+  {
+    printf("\nConnection Failed \n");
+    return -1;
+  }
+  else
+  {
+    orang_data.socket = sock;
+    printf("Connected to server with the address %d\n", sock);
+  }
+  strcpy(orang_data.mode, "recvstrings");
+
+  pthread_create(&cetak, NULL, &orang_cetak, (void *)&sock);
+  pthread_create(&input, NULL, &orang_input, (void *)&sock);
+  while (1)
+  {
+    if (pthread_join(input, NULL) == 0)
+    {
+      pthread_create(&input, NULL, &orang_input, (void *)&sock);
+    }
+  }
+  if (strcmp(orang_data.mode, "recvstrings") == 0)
+  {
+    pthread_join(cetak, NULL);
+  }
+  else
+  {
+    pthread_exit(&cetak);
+  }
 }
