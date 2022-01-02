@@ -8,7 +8,7 @@
 4. Muhammad Nur Fauzan
 
 # Soal 1
-pada soal ini dibutuhkan client dan server yang nantinya digunakan untuk membuat request terhadap perintah yang dipilih. kemudian client akan melakukan register dan login. jika client memilih register maka akan diminta input id dan password yang nantinya dikirimkan ke server . jika client memilih login maka client akan melakukan input id dan password yang sesuai dengan data pada server. Server dapat menerima multiconection dan jika terdapat 2 request client atau lebih maka yang lain akan menunggu terlebih dahulu untuk diproses.
+pada soal ini dibutuhkan client dan server yang nantinya akan digunakan untuk membuat request terhadap perintah yang dipilih. kemudian client akan melakukan register dan login. jika client memilih register maka akan diminta input id dan password yang nantinya dikirimkan ke server . jika client memilih login maka client akan melakukan input id dan password yang sesuai dengan data pada server. Server dapat menerima multiconection dan jika terdapat 2 request client atau lebih maka yang lain akan menunggu terlebih dahulu untuk diproses.
 
 ## Client 
 ### Library yang digunakan untuk soal ini:
