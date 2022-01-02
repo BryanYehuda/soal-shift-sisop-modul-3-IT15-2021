@@ -1,5 +1,12 @@
 # soal-shift-sisop-modul-3-IT15-2021
-Ini adalah repository yang dibuat untuk menampung Jawaban Soal Shift Sisop Modul 3
+## Laporan Pengerjaan Modul 3 Praktikum Sistem Operasi    
+
+### Nama Anggota Kelompok:  
+1. Bryan Yehuda Mannuel
+2. Calvin Mannuel Simatupang
+3. Ian Felix Jonathan Simanjuntak
+4. Muhammad Nur Fauzan
+
 # Soal 1
 pada soal ini dibutuhkan client dan server yang nantinya digunakan untuk membuat request terhadap perintah yang dipilih. kemudian client akan melakukan register dan login. jika client memilih register maka akan diminta input id dan password yang nantinya dikirimkan ke server . jika client memilih login maka client akan melakukan input id dan password yang sesuai dengan data pada server. Server dapat menerima multiconection dan jika terdapat 2 request client atau lebih maka yang lain akan menunggu terlebih dahulu untuk diproses.
 
@@ -1013,7 +1020,6 @@ fungsi accept ini menerima dari antrian koneksi yang masuk pada server, membuat 
 
 ## Screenshot Hasil Run :
 ![messageImage_1621781470998](https://user-images.githubusercontent.com/71550384/119268947-60dc7200-bc1f-11eb-8221-8ec0679d58b0.jpg)
-![messageImage_1621781439934](https://user-images.githubusercontent.com/71550384/119268948-61750880-bc1f-11eb-9313-c143d9eca304.jpg)
 ![messageImage_1621781259424](https://user-images.githubusercontent.com/71550384/119268950-620d9f00-bc1f-11eb-906f-7dcc1bebfaa9.jpg)
 ![messageImage_1621781223578](https://user-images.githubusercontent.com/71550384/119268951-62a63580-bc1f-11eb-901e-75ebf61fc064.jpg)
 ![messageImage_1621781193780](https://user-images.githubusercontent.com/71550384/119268952-633ecc00-bc1f-11eb-863c-00f958caa888.jpg)
@@ -1024,8 +1030,8 @@ fungsi accept ini menerima dari antrian koneksi yang masuk pada server, membuat 
 
 
 # Soal 2
-## Soal 2a
-pada soal 2a ini kita akan memasukan matriks 4 x 3 dan juga 3 x 6 lalu dimasukan ke dalam fungsi perkalian matriks dengan code sebagai berikut
+## Soal 2A
+pada soal 2A ini kita akan memasukan matriks 4 x 3 dan juga 3 x 6 lalu dimasukan ke dalam fungsi perkalian matriks dengan code sebagai berikut
 ```c
 void* perkalianMatriks(void *arg)
 {
@@ -1051,8 +1057,8 @@ for(int i =0; i < 4; i++){
     printf("\n");
 }
 ```
-## Soal 2b
-sama seperti 2a kita juga akan memasukan matriks, disini kita akan memasukan matriks 4 x 6 lalu akan dibandingkan dengan matriks hasil perkalian soal 2a menggunakan shared memory. karena kita akan melakukan proses secara pararel untuk setiap element matriks maka kita akan menggunakan trhead dan juga struct node untuk memparsing iterasi.
+## Soal 2B
+sama seperti 2A kita juga akan memasukan matriks, disini kita akan memasukan matriks 4 x 6 lalu akan dibandingkan dengan matriks hasil perkalian soal 2A menggunakan shared memory. karena kita akan melakukan proses secara pararel untuk setiap element matriks maka kita akan menggunakan trhead dan juga struct node untuk memparsing iterasi.
 ```c
 pthread_t thread[24];
 key_t key = 1234;
@@ -1117,17 +1123,17 @@ for (int c = 0; c < 4; c++){
 }
 ```
 
-## Soal 2c
-pada soal 2c kita akan membuat sebuah program untuk Inter-process communication dengan melihat 5 proses teratas pada sistem kita menggunakan pipe. untuk codenya sudah ada di file github.
+## Soal 2C
+pada soal 2C kita akan membuat sebuah program untuk Inter-process communication dengan melihat 5 proses teratas pada sistem kita menggunakan pipe. untuk codenya sudah ada di file github.
 
 ## Hasil Run
-**soal 2a**  
+**soal 2A**  
 ![image](https://user-images.githubusercontent.com/73151866/118959043-26a77200-b98c-11eb-9011-7041760d6a8d.png)  
 
-**soal 2b**  
+**soal 2B**  
 ![image](https://user-images.githubusercontent.com/73151866/118960144-2f4c7800-b98d-11eb-8e29-3c87dc54cdd7.png)  
 
-**soal 2c**  
+**soal 2C**  
 hasil run program  
 ![image](https://user-images.githubusercontent.com/73151866/118960330-60c54380-b98d-11eb-8959-07df35d013b7.png)  
 
@@ -1360,7 +1366,7 @@ void listFilesRecursively(char *basePath)
 ```
 kode ini merupakan kode template yang terdapat dalam module2. Perbadaan yang kami lakukan adalah, untuk setiap path yang dicek akan dimasukkan terlebih dahulu kedalam array infos.
 
-## hasil Run
+## Hasil Run
 kami membuat 2 buah file yang akan dikategorikan  
 
 ![image_2021-05-20_151556](https://user-images.githubusercontent.com/50267676/118943926-46379e00-b97e-11eb-950b-da8fb1e2c8dd.png)  
@@ -1379,5 +1385,5 @@ Selanjutnya kita mencoba untuk test case 3 `("\*")`
 ![Soal3Ian7](https://user-images.githubusercontent.com/50267676/118946730-e1ca0e00-b980-11eb-8863-d9b7d0e7a2d8.PNG)
 ![Soal3Ian6](https://user-images.githubusercontent.com/50267676/118946735-e393d180-b980-11eb-8e75-9759ec178c9e.png)
 
-## Kesulitan yang dihadapi
+## Kendala yang Dihadapi
 1. Contoh test case yang diberikan sangat sedikit sehingga tidak tahu mana yang benar setalah menjalankan program untuk mengkategorikan directory soal3
